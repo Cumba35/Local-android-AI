@@ -1,68 +1,92 @@
-# Local LLM — Offline AI on Android
+### LLM local — IA sin conexión en Android
 
-Run **Llama 3.1 8B Instruct** (or any GGUF model) fully on-device on your Android phone, with no internet required after the first model download.
+Ejecuta Llama 3.1 8B Instruct (o cualquier modelo GGUF) completamente en tu teléfono Android, sin necesidad de Internet después de descargar el modelo por primera vez.
 
-## Features
+### Características
 
-- 🦙 **llama.cpp** inference engine, compiled natively for ARM64
-- ⚡ **Vulkan GPU acceleration** enabled by default (falls back to CPU automatically)
-- 📥 **Auto-downloads** the model from HuggingFace on first launch (~4.7 GB)
-- ⏸ **Resume downloads** — picks up where it left off if interrupted
-- 💬 Clean dark chat UI with streaming token output
-- 🛑 Stop generation mid-response
+* 🦙 Motor de inferencia llama.cpp, compilado de forma nativa para ARM64.
 
-## Requirements
+* ⚡ Aceleración de GPU mediante Vulkan activada de forma predeterminada, con posibilidad de recurrir automáticamente a la CPU.
 
-- Android 9.0+ (API 28)
-- ARM64 processor (Snapdragon, MediaTek, etc.)
-- ~6–8 GB free RAM (for 8B model)
-- ~5 GB storage for model file
-- Internet for the first model download
+* 📥 Descarga automática del modelo desde Hugging Face en el primer inicio (aproximadamente 4,7 GB).
 
-## Build (GitHub Actions)
+* ⏸ Reanudación de descargas: continúa desde el punto en el que se interrumpió la descarga.
 
-1. Fork / push this repo to GitHub
-2. Go to **Actions → Build LocalLLM APK → Run workflow**
-3. Wait ~20–40 minutes for the build to complete
-4. Download the APK from the **Artifacts** section
-5. Install on your phone (enable "Install from unknown sources")
+* 💬 Interfaz de chat oscura y sencilla, con generación progresiva de texto.
 
-The workflow automatically:
-- Clones the latest `llama.cpp`
-- Compiles native libs with the Android NDK (arm64-v8a)
-- Enables Vulkan if the NDK finds it
-- Packages everything into a single APK
+* 🛑 Permite detener la generación en mitad de una respuesta.
 
-## Changing the model
+### Requisitos
 
-Edit `ModelDownloader.kt`:
+* Android 9.0 o superior (API 28).
 
-```kotlin
-const val DEFAULT_MODEL_NAME = "your-model.gguf"
-const val DEFAULT_MODEL_URL  = "https://huggingface.co/repo/resolve/main/your-model.gguf"
-```
+* Procesador ARM64 (Snapdragon, MediaTek, etc.).
 
-Any GGUF-format model will work. Tested models:
-| Model | Size (Q4_K_M) | Speed (Snapdragon 8 Gen 2) |
-|-------|--------------|---------------------------|
-| Llama 3.1 8B Instruct | 4.7 GB | ~8–12 tok/s |
-| Mistral 7B Instruct v0.3 | 4.1 GB | ~10–14 tok/s |
-| Llama 3.2 3B Instruct | 2.0 GB | ~20–28 tok/s |
+* Aproximadamente 6–8 GB de RAM libre para el modelo de 8B.
 
-## Prompt format
+* Aproximadamente 5 GB de almacenamiento para el archivo del modelo.
 
-The app uses the **Llama 3 Instruct** format by default. If you switch to Mistral,
-update `buildPrompt()` in `LlamaEngine.kt` to use `[INST]...[/INST]` format.
+* Conexión a Internet para la primera descarga del modelo.
 
-## GPU layers
+### Compilación mediante GitHub Actions
 
-By default, the app tries to offload **all layers** to Vulkan GPU (`nGpuLayers = 99`).
-If your phone doesn't have enough VRAM, lower it in `LlamaEngine.kt`:
+* Haz un fork del repositorio o súbelo a tu cuenta de GitHub.
+
+* Entra en Actions → Build LocalLLM APK → Run workflow (Ejecutar flujo de trabajo).
+
+* Espera entre 20 y 40 minutos a que termine la compilación.
+
+* Descarga el APK desde la sección Artifacts (Artefactos).
+
+* Instala el APK en tu teléfono, habilitando la opción de instalar aplicaciones de fuentes desconocidas.
+
+El flujo de trabajo realiza automáticamente las siguientes tareas:
+
+* Clona la versión más reciente de `llama.cpp`.
+
+* Compila las bibliotecas nativas con Android NDK para la arquitectura `arm64-v8a`.
+
+* Habilita Vulkan si el NDK lo encuentra disponible.
+
+* Empaqueta todo en un único APK.
+
+### Cómo cambiar el modelo
+
+Edita el archivo `ModelDownloader.kt`:
 
 ```kotlin
-engine.loadModel(modelPath, nGpuLayers = 20)  // partial GPU offload
+const val DEFAULT_MODEL_NAME = "tu-modelo.gguf"
+const val DEFAULT_MODEL_URL  = "https://huggingface.co/repositorio/resolve/main/tu-modelo.gguf"
 ```
 
-## License
+Se puede utilizar cualquier modelo en formato GGUF. Modelos probados:
 
-Apache 2.0 — same as llama.cpp.
+| Modelo                   | Tamaño (Q4_K_M) | Velocidad (Snapdragon 8 Gen 2) |
+| ------------------------ | --------------- | ------------------------------ |
+| Llama 3.1 8B Instruct    | 4,7 GB          | ~8–12 tokens/s                 |
+| Mistral 7B Instruct v0.3 | 4,1 GB          | ~10–14 tokens/s                |
+| Llama 3.2 3B Instruct    | 2,0 GB          | ~20–28 tokens/s                |
+
+### Formato del prompt
+
+La aplicación utiliza de forma predeterminada el formato Llama 3 Instruct.
+
+Si cambias a Mistral, actualiza la función `buildPrompt()` del archivo `LlamaEngine.kt` para utilizar el formato `[INST]...[/INST]`.
+
+### Capas de GPU
+
+De forma predeterminada, la aplicación intenta transferir todas las capas a la GPU Vulkan (`nGpuLayers = 99`).
+
+Si tu teléfono no tiene suficiente memoria de GPU, reduce el valor en `LlamaEngine.kt`:
+
+```kotlin
+engine.loadModel(modelPath, nGpuLayers = 20)  // descarga parcial de capas a la GPU
+```
+
+### Licencia
+
+Apache 2.0, igual que `llama.cpp`.
+
+Importante para tu Sony H3213: tu teléfono tiene 4 GB de RAM, por lo que el modelo Llama 3.1 8B de 4,7 GB no es una opción práctica. Para tu proyecto Nova, el modelo `LFM2.5-350M-Q4_K_M.gguf` que ya utilizas es mucho más adecuado por su tamaño.
+
+Además, el texto describe un procedimiento de compilación, pero no incluye el enlace al repositorio. Por tanto, todavía no permite comprobar si el proyecto compila correctamente ni si la aceleración Vulkan funciona en tu dispositivo.
