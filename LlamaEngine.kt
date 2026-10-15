@@ -46,24 +46,37 @@ class LlamaEngine {
 
     fun modelInfo(): String = nativeModelInfo()
 
+    
     /**
-     * Build a Llama-3-Instruct formatted prompt from a conversation history.
+     * Construye una conversación con el formato ChatML de LFM2.5.
      */
-    fun buildPrompt(messages: List<ChatMessage>, systemPrompt: String): String {
+    fun buildPrompt(
+        messages: List<ChatMessage>,
+        systemPrompt: String
+    ): String {
         val sb = StringBuilder()
-        sb.append("<|begin_of_text|>")
-        sb.append("<|start_header_id|>system<|end_header_id|>\n\n")
+
+        sb.append("<|startoftext|>")
+        sb.append("<|im_start|>system\n")
         sb.append(systemPrompt)
-        sb.append("<|eot_id|>")
+        sb.append("<|im_end|>\n")
+
         for (msg in messages) {
             val role = if (msg.isUser) "user" else "assistant"
-            sb.append("<|start_header_id|>$role<|end_header_id|>\n\n")
+
+            sb.append("<|im_start|>")
+            sb.append(role)
+            sb.append("\n")
             sb.append(msg.text)
-            sb.append("<|eot_id|>")
+            sb.append("<|im_end|>\n")
         }
-        sb.append("<|start_header_id|>assistant<|end_header_id|>\n\n")
+
+        sb.append("<|im_start|>assistant\n")
+
         return sb.toString()
     }
+
+    
 
     // ── Native declarations ───────────────────────────────────────────────
     private external fun nativeLoad(path: String, nGpuLayers: Int, nCtx: Int): Boolean
